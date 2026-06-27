@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCENARIO TOOLKIT — RPGツクールMZ シナリオ支援</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Noto+Serif+JP:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a; --bg2:#0c1018; --panel:#101319; --panel2:#161a21;
+  --line:rgba(255,255,255,.12); --line2:rgba(255,255,255,.055);
+  --txt:#e9e6df; --muted:#8b9099; --faint:#5f6570;
+  --gold:#c9a84c; --gold-dim:#9a7f38; --warn:#cf6a4f; --warnbg:rgba(207,106,79,.10);
+  --ok:#6f9c7e; --serif:'Noto Serif JP',serif; --sans:'Noto Sans JP',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace; --disp:'Bebas Neue',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--txt);font-family:var(--sans);font-size:15px;line-height:1.7;-webkit-font-smoothing:antialiased}
+body{background:
+  radial-gradient(900px 500px at 85% -10%, rgba(201,168,76,.06), transparent 60%),
+  linear-gradient(180deg,#080a0f 0%, var(--bg) 40%, #0b0d12 100%);
+  min-height:100vh;position:relative}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.04;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>")}
+.wrap{position:relative;z-index:1;max-width:1180px;margin:0 auto;padding:0 24px 80px}
+
+/* ===== header ===== */
+header{padding:40px 24px 0;max-width:1180px;margin:0 auto;position:relative;z-index:1}
+.brandrow{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;
+  border-bottom:1px solid var(--line);padding-bottom:22px}
+.brand h1{font-family:var(--disp);font-weight:400;font-size:54px;letter-spacing:.06em;line-height:.92;color:var(--txt)}
+.brand h1 span{color:var(--gold)}
+.brand .jp{font-family:var(--serif);font-weight:700;font-size:15px;letter-spacing:.18em;color:var(--muted);margin-top:8px}
+.proj{display:flex;gap:10px;flex-wrap:wrap}
+.proj .stat{font-family:var(--mono);font-size:11px;color:var(--faint);letter-spacing:.08em;align-self:center;margin-right:4px}
+
+/* ===== tabs ===== */
+nav.tabs{display:flex;gap:2px;margin-top:26px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+nav.tabs button{appearance:none;background:transparent;border:none;border-bottom:2px solid transparent;
+  color:var(--muted);font-family:var(--serif);font-weight:700;font-size:15px;letter-spacing:.06em;
+  padding:14px 20px;cursor:pointer;transition:color .2s,border-color .2s;position:relative;top:1px}
+nav.tabs button .no{font-family:var(--disp);font-size:13px;color:var(--gold-dim);margin-right:8px;letter-spacing:.05em}
+nav.tabs button:hover{color:var(--txt)}
+nav.tabs button.active{color:var(--txt);border-color:var(--gold)}
+nav.tabs button.active .no{color:var(--gold)}
+
+/* ===== panels / shared ===== */
+.tab{display:none;animation:fade .35s ease}
+.tab.show{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.lead{margin:26px 0 22px;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+.lead .k{font-family:var(--disp);font-size:30px;color:var(--gold);letter-spacing:.05em}
+.lead .t{font-family:var(--serif);font-weight:700;font-size:20px}
+.lead .d{font-size:13px;color:var(--muted)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:860px){.grid2{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--panel) 0%,#0e1116 100%);border:1px solid var(--line);
+  border-top-color:rgba(255,255,255,.16);padding:22px}
+.card h3{font-family:var(--serif);font-weight:700;font-size:15px;letter-spacing:.05em;margin-bottom:14px;
+  display:flex;align-items:center;gap:9px;color:var(--txt)}
+.card h3::before{content:"";width:4px;height:15px;background:var(--gold);display:inline-block}
+label.fld{display:block;font-size:12px;color:var(--muted);letter-spacing:.06em;margin:14px 0 6px}
+textarea,input[type=text],input[type=number],select{width:100%;background:#0b0d11;color:var(--txt);
+  border:1px solid var(--line);border-radius:3px;padding:11px 12px;font-family:var(--mono);font-size:13px;
+  line-height:1.7;outline:none;transition:border-color .2s}
+textarea:focus,input:focus,select:focus{border-color:var(--gold-dim)}
+textarea{resize:vertical;min-height:120px}
+select{cursor:pointer}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.row .col{flex:1;min-width:120px}
+.btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+button.act{appearance:none;cursor:pointer;font-family:var(--sans);font-weight:700;font-size:13px;letter-spacing:.04em;
+  padding:11px 18px;border-radius:3px;border:1px solid var(--gold-dim);background:transparent;color:var(--gold);
+  transition:background .2s,color .2s,transform .12s}
+button.act:hover{background:var(--gold);color:#0a0a0a}
+button.act:active{transform:scale(.97)}
+button.act.solid{background:var(--gold);color:#0a0a0a}
+button.act.solid:hover{background:#dcbb58}
+button.act.ghost{border-color:var(--line);color:var(--muted)}
+button.act.ghost:hover{background:rgba(255,255,255,.06);color:var(--txt)}
+.hint{font-size:12px;color:var(--faint);margin-top:8px;line-height:1.6}
+pre.out{background:#070809;border:1px solid var(--line);border-radius:3px;padding:16px;overflow:auto;
+  font-family:var(--mono);font-size:12px;color:#cdd2d8;max-height:420px;white-space:pre;line-height:1.65}
+.empty{color:var(--faint);font-size:13px;padding:18px;text-align:center;border:1px dashed var(--line2)}
+
+/* chips */
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px}
+.chip{font-family:var(--mono);font-size:12px;padding:5px 10px;border:1px solid var(--line);border-radius:3px;
+  background:#0d1014;color:var(--muted);cursor:pointer;transition:.18s}
+.chip:hover{border-color:var(--gold-dim);color:var(--gold)}
+.chip .sw{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}
+
+/* warnings */
+.warns{margin-top:14px;display:flex;flex-direction:column;gap:7px}
+.warn{background:var(--warnbg);border-left:3px solid var(--warn);padding:9px 12px;font-size:12.5px;color:#e7c4b8}
+.warn .ln{font-family:var(--mono);color:var(--warn);margin-right:8px}
+.okmsg{color:var(--ok);font-size:13px;display:flex;align-items:center;gap:8px}
+.okmsg::before{content:"●";font-size:9px}
+
+/* tables */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);margin-top:6px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+th{background:#0c0f13;font-family:var(--serif);font-weight:700;font-size:12px;letter-spacing:.05em;color:var(--muted);
+  text-align:left;padding:11px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:6px 8px;border-bottom:1px solid var(--line2);vertical-align:middle}
+tr.dup td{background:rgba(207,106,79,.08)}
+td input,td select{font-size:12.5px;padding:7px 8px;border-color:var(--line2)}
+td.id input{width:64px;text-align:center}
+td.idx input{width:54px;text-align:center}
+.del{appearance:none;background:transparent;border:1px solid var(--line);color:var(--faint);width:28px;height:28px;
+  border-radius:3px;cursor:pointer;font-size:14px;transition:.18s;line-height:1}
+.del:hover{border-color:var(--warn);color:var(--warn)}
+.tablebar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:14px 0 4px}
+.tablebar input[type=text]{max-width:220px}
+.tablebar select{max-width:170px}
+.tablebar .sp{flex:1}
+
+/* ===== message preview window (game look) ===== */
+.previewzone{overflow-x:auto;padding:4px}
+.mz-screen{background:linear-gradient(160deg,#1a2233,#0d1320);padding:26px;min-width:840px;border:1px solid var(--line)}
+.mz-win{position:relative;width:816px;background:linear-gradient(180deg,rgba(20,42,82,.92),rgba(8,20,46,.94));
+  border:2px solid #6f86c8;border-radius:5px;box-shadow:0 0 0 2px #1b2747, inset 0 0 22px rgba(0,0,0,.5);
+  padding:18px;display:flex;gap:16px;font-family:var(--sans)}
+.mz-face{width:144px;height:144px;flex:0 0 144px;background:repeating-linear-gradient(45deg,#23304d,#23304d 8px,#1d2742 8px,#1d2742 16px);
+  border:1px solid #46598c;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#7b8db8;
+  font-size:11px;letter-spacing:.1em;text-align:center}
+.mz-text{flex:1;min-width:0}
+.mz-name{display:inline-block;background:linear-gradient(180deg,rgba(20,42,82,.95),rgba(8,20,46,.97));
+  border:2px solid #6f86c8;border-radius:5px;padding:2px 14px;font-size:20px;color:#fff;margin-bottom:8px;
+  font-weight:700;text-shadow:1px 1px 0 #000}
+.mz-lines{position:relative}
+.mz-line{font-size:26px;line-height:36px;height:36px;white-space:nowrap;color:#fff;text-shadow:1px 1px 0 #000;
+  overflow:hidden}
+.mz-line.over{box-shadow:inset -6px 0 0 -2px var(--warn)}
+.mz-line.extra{opacity:.45}
+.mz-guide{position:absolute;left:0;right:0;top:144px;border-top:1px dashed rgba(255,120,90,.6)}
+.mz-cap{font-family:var(--mono);font-size:11px;color:var(--faint);margin-top:6px}
+.msgblock{margin-bottom:22px}
+.msgblock .bl{font-family:var(--mono);font-size:11px;color:var(--gold-dim);letter-spacing:.08em;margin-bottom:6px}
+
+/* palette */
+.pal{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pal button{font-family:var(--mono);font-size:12px;padding:6px 10px;border:1px solid var(--line);background:#0d1014;
+  color:var(--muted);border-radius:3px;cursor:pointer;transition:.16s}
+.pal button:hover{border-color:var(--gold-dim);color:var(--gold)}
+.colorpal{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.colorpal button{width:26px;height:26px;border:1px solid rgba(255,255,255,.2);border-radius:3px;cursor:pointer;padding:0;
+  position:relative;transition:transform .12s}
+.colorpal button:hover{transform:scale(1.15);border-color:#fff}
+
+details.guide{margin-top:14px;border:1px solid var(--line2);border-radius:3px;background:#0b0d11}
+details.guide summary{cursor:pointer;padding:11px 14px;font-family:var(--serif);font-weight:700;font-size:13px;
+  color:var(--gold);letter-spacing:.04em;list-style:none}
+details.guide summary::-webkit-details-marker{display:none}
+details.guide summary::before{content:"▸ ";color:var(--gold-dim)}
+details.guide[open] summary::before{content:"▾ "}
+details.guide .body{padding:4px 16px 16px;font-size:12.5px;color:var(--muted);line-height:1.85}
+details.guide code{font-family:var(--mono);background:#15191f;color:#d8c98a;padding:1px 6px;border-radius:3px;font-size:12px}
+.gtable{width:100%;border-collapse:collapse;margin-top:8px}
+.gtable td{border-bottom:1px solid var(--line2);padding:7px 6px;vertical-align:top;font-size:12.5px}
+.gtable td:first-child{white-space:nowrap;width:40%}
+
+.checkres{margin-top:16px;display:flex;flex-direction:column;gap:8px}
+.cres{border:1px solid var(--line);background:#0c0f13;padding:11px 14px;font-size:13px}
+.cres .top{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:5px}
+.cres .ln{font-family:var(--mono);font-size:11px;color:var(--faint)}
+.cres .bad{color:var(--warn);font-weight:700}
+.cres .arr{color:var(--faint)}
+.cres .good{color:var(--gold);font-weight:700}
+.cres .ctx{font-family:var(--mono);font-size:12px;color:var(--muted);background:#070809;padding:6px 9px;border-radius:3px}
+.cres .ctx mark{background:rgba(207,106,79,.3);color:#f0cbbf;padding:0 1px}
+.stat-row{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px}
+.stat-row .s{font-size:12px;color:var(--muted)}
+.stat-row .s b{font-family:var(--disp);font-size:22px;color:var(--gold);margin-right:6px;letter-spacing:.03em}
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(20px);background:#15191f;
+  border:1px solid var(--gold-dim);color:var(--gold);padding:12px 22px;border-radius:4px;font-size:13px;
+  font-weight:700;opacity:0;pointer-events:none;transition:.3s;z-index:50;letter-spacing:.04em}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.subnote{font-size:12px;color:var(--faint);border-top:1px solid var(--line2);margin-top:18px;padding-top:14px;line-height:1.7}
+
+/* ハイライト付きエディタ（長い行をマーカー表示） */
+.editor{position:relative;background:#0b0d11;border:1px solid var(--line);border-radius:3px;transition:border-color .2s}
+.editor:focus-within{border-color:var(--gold-dim)}
+.editor textarea#scriptIn{background:transparent;border:none;display:block;width:100%;padding:11px 12px;
+  resize:vertical;min-height:320px;font-family:var(--mono);font-size:13px;line-height:1.7;color:var(--txt);
+  caret-color:var(--gold);outline:none;position:relative;z-index:2;overflow-y:auto}
+.hl-layer{position:absolute;inset:0;z-index:1;padding:11px 12px;margin:0;font-family:var(--mono);font-size:13px;
+  line-height:1.7;letter-spacing:0;white-space:pre-wrap;word-break:break-all;overflow:hidden;color:transparent;
+  pointer-events:none;border-radius:3px}
+.hl-ln{min-height:1px}
+.hl-ln.bad{background:rgba(207,106,79,.16);box-shadow:inset 3px 0 0 var(--warn)}
+.hlnote{color:var(--warn);font-family:var(--mono);font-size:11px;margin-left:8px}
+.warn.jump{cursor:pointer}
+.warn.jump:hover{background:rgba(207,106,79,.18)}
+</style>
+</head>
+<body>
+<header>
+  <div class="brandrow">
+    <div class="brand">
+      <h1>SCENARIO <span>TOOLKIT</span></h1>
+      <div class="jp">ツクールMZ シナリオ支援ツール群</div>
+    </div>
+    <div class="proj">
+      <span class="stat" id="projStat">— 自動保存ON</span>
+      <button class="act ghost" onclick="exportProject()">プロジェクト保存</button>
+      <button class="act ghost" onclick="document.getElementById('impFile').click()">読込</button>
+      <input type="file" id="impFile" accept=".json" style="display:none" onchange="importProject(this.files[0])">
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="conv" class="active"><span class="no">01</span>台本→JSON変換</button>
+    <button data-tab="prev"><span class="no">02</span>メッセージ確認</button>
+    <button data-tab="flag"><span class="no">03</span>フラグ・変数</button>
+    <button data-tab="term"><span class="no">04</span>用語・表記チェック</button>
+  </nav>
+</header>
+
+<div class="wrap">
+
+<!-- ============ TAB 1: CONVERTER ============ -->
+<section class="tab show" id="tab-conv">
+  <div class="lead"><span class="k">01</span><span class="t">台本 → イベントコマンドJSON</span>
+    <span class="d">脚本を書いて変換 → MZのイベントに貼り付け</span></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>台本入力</h3>
+      <div id="charChips" class="chips"></div>
+      <label class="fld">脚本（記法は下のガイド参照）<span id="hlNote" class="hlnote"></span></label>
+      <div class="editor" id="cvEditor">
+        <div class="hl-layer" id="cvHL" aria-hidden="true"></div>
+        <textarea id="scriptIn" spellcheck="false" placeholder="アキ: おはよう。&#10;今日はいい天気だね。&#10;&#10;@choice&#10;> 出かける&#10;    アキ: よし、行こう。&#10;> 家にいる&#10;    アキ: のんびりしよう。"></textarea>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <div class="col"><label class="fld">顔グラフィック</label>
+          <select id="cvFace"><option value="on">辞書から自動で付ける</option><option value="off">付けない</option></select></div>
+        <div class="col"><label class="fld">ウィンドウ位置</label>
+          <select id="cvPos"><option value="2">下</option><option value="1">中</option><option value="0">上</option></select></div>
+        <div class="col"><label class="fld">背景</label>
+          <select id="cvBg"><option value="0">通常</option><option value="1">暗くする</option><option value="2">透明</option></select></div>
+      </div>
+      <div class="btnrow">
+        <button class="act solid" onclick="runConvert()">変換する</button>
+        <button class="act ghost" onclick="loadSampleScript()">サンプル</button>
+        <button class="act ghost" onclick="document.getElementById('scriptIn').value='';runConvert()">クリア</button>
+      </div>
+      <details class="guide"><summary>記法ガイド</summary><div class="body">
+        <b style="color:var(--txt)">基本</b><br>
+        <table class="gtable">
+          <tr><td><code>アキ: セリフ</code></td><td>「アキ」の名前ウィンドウ付きで表示。<br>続く行は同じ人のセリフとして繋がります（最大4行）。</td></tr>
+          <tr><td><code>アキ「セリフ」</code></td><td>カギ括弧でも同じ。行末が <code>」</code> で閉じている場合のみ話者扱い。</td></tr>
+          <tr><td>（名前なしの行）</td><td>地の文。開いているボックスがあればそこに繋がります。</td></tr>
+          <tr><td>（空行）</td><td>メッセージボックスの区切り。ここで新しい枠になります。</td></tr>
+        </table>
+        <b style="color:var(--txt)">選択肢</b> — <code>></code> で項目、その下に字下げで分岐の中身<br>
+        <table class="gtable">
+          <tr><td><code>@choice</code><br><code>> 戦う</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;アキ: いくぞ</code><br><code>> 逃げる</code></td>
+          <td>「戦う／逃げる」の選択肢。<br>選択肢のさらに下に字下げした行は、その分岐の中身になります（入れ子もOK）。</td></tr>
+          <tr><td><code>@choice cancel:branch</code><br><code>@cancel</code></td><td>キャンセル分岐を作る。<code>@cancel</code> の下が「キャンセルされた時」の中身。<br>省略時はキャンセル不可。</td></tr>
+        </table>
+        <b style="color:var(--txt)">その他コマンド</b>
+        <table class="gtable">
+          <tr><td><code>@switch 10 on</code> / <code>off</code></td><td>スイッチ10をON/OFF</td></tr>
+          <tr><td><code>@var 5 = 100</code></td><td>変数5に代入（<code>+=</code> <code>-=</code> も可）</td></tr>
+          <tr><td><code>@wait 60</code></td><td>60フレーム待つ</td></tr>
+          <tr><td><code>@comment メモ</code></td><td>注釈コマンドを挿入</td></tr>
+          <tr><td><code>@label 名前</code> / <code>@jump 名前</code></td><td>ラベル / ラベルジャンプ</td></tr>
+        </table>
+      </div></details>
+    </div>
+
+    <div class="card">
+      <h3>出力（イベントコマンド配列）</h3>
+      <div id="cvWarns"></div>
+      <pre class="out" id="cvOut">変換すると、ここにJSONが出ます。</pre>
+      <div class="btnrow">
+        <button class="act" onclick="copyText('cvOut')">クリップボードにコピー</button>
+        <button class="act ghost" onclick="downloadText('cvOut','event_commands.json')">JSONダウンロード</button>
+      </div>
+      <div class="subnote">
+        <b style="color:var(--muted)">使い方：</b> 出力された配列をコピー → ツクールMZのイベントエディタで、コマンド欄を右クリック「貼り付け」。
+        MZはイベントコマンドのJSON貼り付けに対応しています。うまく貼れない場合は、JSONをマップファイルの該当イベントの <code>list</code> に組み込んでください。
+        （末尾の <code>{"code":0}</code> は終端マーカーです）
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB 2: PREVIEW ============ -->
+<section class="tab" id="tab-prev">
+  <div class="lead"><span class="k">02</span><span class="t">メッセージ表示プレビュー</span>
+    <span class="d">枠内での見え方・はみ出し・4行超えを確認</span></div>
+  <div class="grid2">
+    <div class="card">
+      <h3>テキスト入力</h3>
+      <label class="fld">メッセージ（空行でボックスを区切る）</label>
+      <textarea id="prevIn" style="min-height:200px" placeholder="ここに長めのセリフを入れて、枠からはみ出さないか確認できます。"></textarea>
+      <label class="fld">制御文字を挿入</label>
+      <div class="pal" id="ctrlPal"></div>
+      <label class="fld">文字色 \C[n]</label>
+      <div class="colorpal" id="colorPal"></div>
+      <div class="row" style="margin-top:14px">
+        <div class="col"><label class="fld">顔グラフィック</label>
+          <select id="pvFace"><option value="off">なし（横幅広い）</option><option value="on">あり（横幅狭い）</option></select></div>
+        <div class="col"><label class="fld">フォントサイズ</label>
+          <select id="pvSize"><option value="26">26（標準）</option><option value="28">28</option><option value="24">24</option></select></div>
+      </div>
+      <div class="btnrow"><button class="act solid" onclick="runPreview()">プレビュー更新</button>
+        <button class="act ghost" onclick="document.getElementById('prevIn').value='';runPreview()">クリア</button></div>
+      <div class="subnote">ツクールは自動折り返しをしません。1行が枠を超えると<span style="color:var(--warn)">はみ出し（赤）</span>、
+        1ボックス5行目以降は<span style="color:var(--faint)">薄字</span>で表示されます。</div>
+    </div>
+    <div class="card">
+      <h3>プレビュー</h3>
+      <div id="prevWarns"></div>
+      <div class="previewzone" id="prevZone"><div class="empty">テキストを入れて「プレビュー更新」</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ TAB 3: FLAG / VAR ============ -->
+<section class="tab" id="tab-flag">
+  <div class="lead"><span class="k">03</span><span class="t">フラグ・変数 管理</span>
+    <span class="d">スイッチ／変数の定義書。ID重複は赤で警告</span></div>
+
+  <div class="card">
+    <h3>スイッチ</h3>
+    <div class="tablebar">
+      <input type="text" id="swSearch" placeholder="検索（名前・メモ）" oninput="renderSwitches()">
+      <select id="swFilter" onchange="renderSwitches()"><option value="">全カテゴリ</option></select>
+      <span class="sp"></span>
+      <button class="act ghost" onclick="addSwitch()">＋ 行を追加</button>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>ID</th><th>名前</th><th>カテゴリ</th><th>用途メモ</th><th></th></tr></thead>
+      <tbody id="swBody"></tbody>
+    </table></div>
+  </div>
+
+  <div class="card" style="margin-top:22px">
+    <h3>変数</h3>
+    <div class="tablebar">
+      <input type="text" id="vrSearch" placeholder="検索（名前・メモ）" oninput="renderVars()">
+      <select id="vrFilter" onchange="renderVars()"><option value="">全カテゴリ</option></select>
+      <span class="sp"></span>
+      <button class="act ghost" onclick="addVar()">＋ 行を追加</button>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>ID</th><th>名前</th><th>カテゴリ</th><th>初期値</th><th>メモ</th><th></th></tr></thead>
+      <tbody id="vrBody"></tbody>
+    </table></div>
+  </div>
+
+  <div class="card" style="margin-top:22px">
+    <h3>シーン解放条件</h3>
+    <div class="tablebar"><span class="sp"></span><button class="act ghost" onclick="addScene()">＋ 行を追加</button></div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>シーン / CG名</th><th>解放条件</th><th>対応スイッチ/変数</th><th></th></tr></thead>
+      <tbody id="scBody"></tbody>
+    </table></div>
+  </div>
+
+  <div class="btnrow" style="margin-top:22px">
+    <button class="act solid" onclick="downloadSystemNames()">System.json用の名前を書き出す</button>
+    <button class="act ghost" onclick="downloadFlagCSV()">CSVダウンロード</button>
+  </div>
+  <div class="subnote">「System.json用」は、<code>data/System.json</code> の <code>switches</code> / <code>variables</code> に貼り付けると、
+    エディタ上のスイッチ・変数名が一括で反映されます（ID=配列の位置、0番は空欄）。</div>
+</section>
+
+<!-- ============ TAB 4: TERM CHECK ============ -->
+<section class="tab" id="tab-term">
+  <div class="lead"><span class="k">04</span><span class="t">用語・キャラ表記チェック</span>
+    <span class="d">辞書を登録 → 原稿の表記ゆれを検出。辞書は01変換とも共有</span></div>
+
+  <div class="card">
+    <h3>辞書（キャラ・地名・用語）</h3>
+    <div class="tablebar">
+      <input type="text" id="dcSearch" placeholder="検索" oninput="renderDict()">
+      <span class="sp"></span>
+      <button class="act ghost" onclick="addDict()">＋ 行を追加</button>
+    </div>
+    <div class="tablewrap"><table>
+      <thead><tr><th>種別</th><th>正式表記</th><th>読み</th><th>表記ゆれ（カンマ区切り）</th><th>顔ファイル</th><th>顔#</th><th>色</th><th></th></tr></thead>
+      <tbody id="dcBody"></tbody>
+    </table></div>
+    <div class="hint">「正式表記」が01変換の話者名・名前ウィンドウになります。「顔ファイル」は拡張子なし（例: Actor1）。「色」はMZの \C[n] 番号。</div>
+  </div>
+
+  <div class="card" style="margin-top:22px">
+    <h3>原稿チェック</h3>
+    <label class="fld">チェックしたい原稿を貼り付け</label>
+    <textarea id="termIn" style="min-height:200px" placeholder="シナリオ本文を貼り付けて「チェック実行」。&#10;辞書に登録した『表記ゆれ』が見つかると、正式表記への修正を提案します。"></textarea>
+    <div class="btnrow">
+      <button class="act solid" onclick="runCheck()">チェック実行</button>
+      <button class="act ghost" onclick="downloadCorrected()">一括修正版をダウンロード</button>
+    </div>
+    <div id="termStats"></div>
+    <div class="checkres" id="termRes"></div>
+  </div>
+</section>
+
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =================================================================
+   検証済みパーサー（node test.js で構造検証済み）
+================================================================= */
+function toLines(text){
+  const raw=String(text).replace(/\t/g,'    ').split('\n');
+  return raw.map(l=>{const nt=l.replace(/\s+$/,'');if(nt.trim()==='')return{blank:true};
+    const m=nt.match(/^( *)(.*)$/);return{blank:false,indent:m[1].length,content:m[2]};});
+}
+function stripCodes(s){return String(s).replace(/\\[CcVvNnPpGg]\[[^\]]*\]/g,'')
+  .replace(/\\[.|^><$!{}\\]/g,'').replace(/\\[A-Za-z]+/g,'');}
+function visualWidth(s){const t=stripCodes(s);let w=0;for(const ch of t){const c=ch.codePointAt(0);
+  if(c<=0xff||(c>=0xff61&&c<=0xffdc)||(c>=0xffe8&&c<=0xffee))w+=0.5;else w+=1;}return w;}
+function parseDialogue(c,charMap){
+  let m=c.match(/^(\S[^「『]{0,17}?)[「『]([\s\S]*)[」『]\s*$/);
+  if(m&&m[1].length<=18)return{explicit:true,speaker:m[1].trim(),text:m[2]};
+  m=c.match(/^([^:：「『\s]{1,18})[:：]\s*([\s\S]*)$/);
+  if(m){const name=m[1].trim();const isReg=charMap&&charMap[name];const looksName=!/^[\d\s]+$/.test(name);
+    if(isReg||looksName)return{explicit:true,speaker:name,text:m[2]};}
+  return{explicit:false,speaker:'',text:c};
+}
+function parseChoiceHeader(c){const o={cancel:-2,def:0,pos:2,bg:0};
+  const rest=c.replace(/^@choice\b/,'').trim();const tokens=rest.split(/\s+/).filter(Boolean);
+  for(const tk of tokens){const[k,v]=tk.split(':');
+    if(k==='cancel'){if(v==='disallow')o.cancel=-2;else if(v==='branch')o.cancel=-1;else if(/^\d+$/.test(v))o.cancel=parseInt(v,10);}
+    else if(k==='default'){if(v==='none')o.def=-1;else if(/^\d+$/.test(v))o.def=parseInt(v,10);}
+    else if(k==='pos'){o.pos=v==='top'?0:v==='middle'?1:2;}
+    else if(k==='bg'){o.bg=v==='dim'?1:v==='transparent'?2:0;}}
+  return o;}
+function emitCommand(c,mz,out,warn,ln){let m;
+  if((m=c.match(/^@wait\s+(\d+)/)))out.push({code:230,indent:mz,parameters:[parseInt(m[1],10)]});
+  else if((m=c.match(/^@switch\s+(\d+)\s+(on|off)/i)))out.push({code:121,indent:mz,parameters:[+m[1],+m[1],/on/i.test(m[2])?0:1]});
+  else if((m=c.match(/^@var\s+(\d+)\s*(\+=|-=|=)\s*(-?\d+)/))){const id=+m[1],op=m[2]==='+='?1:m[2]==='-='?2:0;
+    out.push({code:122,indent:mz,parameters:[id,id,op,0,+m[3]]});}
+  else if((m=c.match(/^@comment\s+([\s\S]*)$/)))out.push({code:108,indent:mz,parameters:[m[1]]});
+  else if((m=c.match(/^@label\s+(\S+)/)))out.push({code:118,indent:mz,parameters:[m[1]]});
+  else if((m=c.match(/^@jump\s+(\S+)/)))out.push({code:119,indent:mz,parameters:[m[1]]});
+  else warn.push({line:ln,type:'unknown',msg:'未知のコマンド: '+c});}
+function emitText(box,mz,out,opts,warn){
+  out.push({code:101,indent:mz,parameters:[box.face||'',box.faceIndex||0,opts.background,opts.position,box.speaker||'']});
+  const limit=box.face?opts.faceWidthLimit:opts.widthLimit;
+  for(const it of box.lines){out.push({code:401,indent:mz,parameters:[it.t]});
+    if(visualWidth(it.t)>limit)warn.push({line:it.ln,type:'overflow',msg:'行が長い可能性（'+(box.speaker||'地の文')+'）: '+it.t});}}
+function emitBlock(arr,mz,out,warn,charMap,opts){
+  let box=null;const flush=()=>{if(box){emitText(box,mz,out,opts,warn);box=null;}};
+  let i=0;while(i<arr.length){const l=arr[i];
+    if(l.blank){flush();i++;continue;}
+    const c=l.content;
+    if(/^@choice\b/.test(c)){flush();const cInd=l.indent;let j=i+1;const sub=[];
+      while(j<arr.length){const x=arr[j];if(x.blank){sub.push(x);j++;continue;}
+        if(x.indent>cInd){sub.push(x);j++;continue;}
+        if(x.indent===cInd&&(/^>/.test(x.content)||/^@cancel\b/.test(x.content))){sub.push(x);j++;continue;}break;}
+      handleChoice(c,sub,mz,out,warn,charMap,opts);i=j;continue;}
+    if(/^@/.test(c)){flush();emitCommand(c,mz,out,warn,l.lineNo);i++;continue;}
+    const d=parseDialogue(c,charMap);
+    if(!d.explicit){if(box&&box.lines.length<opts.maxLines)box.lines.push({t:d.text,ln:l.lineNo});
+      else{flush();box={speaker:'',face:'',faceIndex:0,lines:[{t:d.text,ln:l.lineNo}]};}}
+    else{if(box&&box.speaker===d.speaker&&box.lines.length<opts.maxLines)box.lines.push({t:d.text,ln:l.lineNo});
+      else{flush();const ch=charMap&&charMap[d.speaker];
+        box={speaker:d.speaker,face:ch?ch.faceName:'',faceIndex:ch?ch.faceIndex:0,lines:[{t:d.text,ln:l.lineNo}]};}}
+    i++;}
+  flush();}
+function handleChoice(header,sub,mz,out,warn,charMap,opts){
+  const head=parseChoiceHeader(header);let optIndent=null;
+  for(const l of sub){if(!l.blank&&(/^>/.test(l.content)||/^@cancel\b/.test(l.content))){optIndent=l.indent;break;}}
+  const options=[];let cancelOpt=null;let current=null;
+  for(const l of sub){if(l.blank){if(current)current.body.push(l);continue;}
+    const isOpt=l.indent===optIndent&&/^>/.test(l.content);
+    const isCancel=l.indent===optIndent&&/^@cancel\b/.test(l.content);
+    if(isOpt){current={text:l.content.replace(/^>\s*/,''),body:[]};options.push(current);}
+    else if(isCancel){cancelOpt={body:[]};current=cancelOpt;}
+    else if(current){current.body.push(l);}}
+  if(options.length===0){warn.push({type:'choice',msg:'選択肢に項目がありません: '+header});return;}
+  let cancelType=head.cancel;if(cancelOpt)cancelType=-1;
+  out.push({code:102,indent:mz,parameters:[options.map(o=>o.text),cancelType,head.def,head.pos,head.bg]});
+  options.forEach((o,idx)=>{out.push({code:402,indent:mz,parameters:[idx,o.text]});
+    emitBlock(o.body,mz+1,out,warn,charMap,opts);});
+  if(cancelOpt){out.push({code:403,indent:mz,parameters:[]});emitBlock(cancelOpt.body,mz+1,out,warn,charMap,opts);}
+  out.push({code:404,indent:mz,parameters:[]});}
+function parseScript(text,charMap,options){
+  const opts=Object.assign({background:0,position:2,maxLines:4,widthLimit:27,faceWidthLimit:22},options||{});
+  const lines=toLines(text);lines.forEach((l,idx)=>{if(!l.blank)l.lineNo=idx+1;});
+  const out=[];const warn=[];emitBlock(lines,0,out,warn,charMap||{},opts);return{commands:out,warnings:warn};}
+
+/* =================================================================
+   データ & 永続化
+================================================================= */
+const LS='scenario_toolkit_v1';
+let DB={dict:[],switches:[],variables:[],scenes:[],scriptDraft:'',prevDraft:'',termDraft:''};
+function save(){try{localStorage.setItem(LS,JSON.stringify(DB));}catch(e){}
+  document.getElementById('projStat').textContent='— 保存済み '+new Date().toLocaleTimeString('ja-JP',{hour:'2-digit',minute:'2-digit'});}
+function load(){try{const s=localStorage.getItem(LS);if(s){const d=JSON.parse(s);DB=Object.assign(DB,d);}}catch(e){}}
+function uid(){return Math.random().toString(36).slice(2,9);}
+
+/* MZ 既定パレット近似（\C[n] のプレビュー用） */
+const MZCOL=['#ffffff','#3aa3e0','#ff6a4d','#66cc55','#7fd4ff','#c9b6ff','#fff070','#9aa0a8',
+ '#cfd4da','#79d0ff','#ff9a8a','#9bd17e','#b3c4ff','#ffd2c0','#ffc0e0','#ffffff',
+ '#7fb0ff','#fff0a0','#ff8a8a','#90e0a0','#c0a0ff','#ffd060','#a0d0ff','#ff7090',
+ '#d0d0d0','#60c0ff','#ffb060','#80ffb0','#ff80c0','#c0ff80','#80c0ff','#ffd700'];
+
+/* =================================================================
+   タブ
+================================================================= */
+document.getElementById('tabs').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-tab]');if(!b)return;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('show'));
+  document.getElementById('tab-'+b.dataset.tab).classList.add('show');
+});
+
+/* =================================================================
+   共通ユーティリティ
+================================================================= */
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1800);}
+function copyText(id){const txt=document.getElementById(id).textContent;
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(()=>toast('コピーしました'),()=>fallbackCopy(txt));}
+  else fallbackCopy(txt);}
+function fallbackCopy(txt){const ta=document.createElement('textarea');ta.value=txt;document.body.appendChild(ta);
+  ta.select();try{document.execCommand('copy');toast('コピーしました');}catch(e){toast('コピー失敗 手動で選択してください');}
+  document.body.removeChild(ta);}
+function downloadText(id,name){downloadBlob(document.getElementById(id).textContent,name,'application/json');}
+function downloadBlob(content,name,type){const b=new Blob([content],{type:type||'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);toast(name+' を保存');}
+function insertAtCursor(el,text){const s=el.selectionStart,e=el.selectionEnd;
+  el.value=el.value.slice(0,s)+text+el.value.slice(e);el.selectionStart=el.selectionEnd=s+text.length;el.focus();}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* =================================================================
+   01 変換
+================================================================= */
+function buildCharMap(){const m={};DB.dict.forEach(d=>{if(d.canonical)m[d.canonical]={faceName:d.faceName||'',faceIndex:+d.faceIndex||0};});return m;}
+function renderCharChips(){const box=document.getElementById('charChips');
+  const chars=DB.dict.filter(d=>d.type==='キャラ'&&d.canonical);
+  if(!chars.length){box.innerHTML='<span class="hint">辞書（04タブ）にキャラを登録すると、ここから話者名をワンタップ挿入できます。</span>';return;}
+  box.innerHTML=chars.map(d=>{const col=MZCOL[+d.color||0]||'#fff';
+    return '<span class="chip" data-name="'+esc(d.canonical)+'"><span class="sw" style="background:'+col+'"></span>'+esc(d.canonical)+'</span>';}).join('');
+  box.querySelectorAll('.chip').forEach(ch=>ch.onclick=()=>insertAtCursor(document.getElementById('scriptIn'),'\n'+ch.dataset.name+': '));}
+function parseCurrent(){
+  const text=document.getElementById('scriptIn').value;
+  const faceOn=document.getElementById('cvFace').value==='on';
+  const cm=faceOn?buildCharMap():{};
+  const opts={background:+document.getElementById('cvBg').value,position:+document.getElementById('cvPos').value};
+  const res=parseScript(text,cm,opts);
+  const set=new Set();res.warnings.forEach(w=>{if(w.type==='overflow'&&w.line)set.add(w.line);});
+  return {text,res,set};
+}
+function renderHL(text,set){
+  const lines=text.split('\n');
+  document.getElementById('cvHL').innerHTML=lines.map((ln,i)=>
+    '<div class="hl-ln'+(set.has(i+1)?' bad':'')+'">'+(ln===''?'\u200b':esc(ln))+'</div>').join('');
+}
+function syncHL(){const ta=document.getElementById('scriptIn'),hl=document.getElementById('cvHL');
+  hl.scrollTop=ta.scrollTop;hl.scrollLeft=ta.scrollLeft;}
+function liveHighlight(){const {text,set}=parseCurrent();renderHL(text,set);syncHL();
+  document.getElementById('hlNote').textContent=set.size?('長い行 '+set.size):'';}
+let _hlT;function debouncedHL(){clearTimeout(_hlT);_hlT=setTimeout(liveHighlight,90);}
+function jumpToLine(n){const ta=document.getElementById('scriptIn');const lines=ta.value.split('\n');
+  let pos=0;for(let i=0;i<n-1&&i<lines.length;i++)pos+=lines[i].length+1;
+  ta.focus();ta.setSelectionRange(pos,pos+(lines[n-1]?lines[n-1].length:0));
+  ta.scrollTop=Math.max(0,(n-1)*13*1.7-60);syncHL();}
+function runConvert(){
+  const {text,res,set}=parseCurrent();DB.scriptDraft=text;save();
+  const cmds=res.commands.slice();cmds.push({code:0,indent:0,parameters:[]});
+  document.getElementById('cvOut').textContent=JSON.stringify(cmds,null,2);
+  renderHL(text,set);syncHL();
+  document.getElementById('hlNote').textContent=set.size?('長い行 '+set.size):'';
+  const w=document.getElementById('cvWarns');
+  if(!res.warnings.length){w.innerHTML=text.trim()?'<div class="okmsg">警告なし。きれいに変換できました</div>':'';}
+  else w.innerHTML='<div class="warns">'+res.warnings.map(x=>{
+    const isJump=(x.type==='overflow'&&x.line);
+    const onclk=isJump?(' onclick="jumpToLine('+x.line+')"'):'';
+    return '<div class="warn'+(isJump?' jump':'')+'"'+onclk+'>'+
+      (x.line?'<span class="ln">L'+x.line+'</span>':'')+esc(x.msg)+'</div>';
+  }).join('')+'</div>';
+}
+function loadSampleScript(){document.getElementById('scriptIn').value=
+`アキ: ここが噂の屋敷か……。
+ずいぶん静かだな。
+ユイ「気をつけてください、何かいます」
+
+@switch 12 on
+
+アキ: どうする？
+@choice cancel:branch
+> 中に入る
+    アキ: 行くしかない。
+    @var 3 += 1
+> 引き返す
+    ユイ「賢明な判断かと」
+@cancel
+    アキ: ……まだ迷っている。
+
+これは長すぎる地の文の例で全角の文字をとにかくたくさん並べて枠からはみ出す警告を出すためのサンプル行です。`;
+  runConvert();}
+
+/* =================================================================
+   02 プレビュー
+================================================================= */
+const CTRL=[['\\C[n]','色変更（下のパレット）'],['\\V[1]','変数1'],['\\N[1]','アクターp1名'],['\\P[1]','パーティ1名'],
+ ['\\G','通貨単位'],['\\.','1/4秒待つ'],['\\|','1秒待つ'],['\\!','入力待ち'],['\\^','入力待ちなし'],['\\\\','￥記号']];
+function buildPalettes(){
+  const cp=document.getElementById('ctrlPal');
+  cp.innerHTML='';CTRL.forEach(([code,desc])=>{const b=document.createElement('button');
+    b.textContent=code;b.title=desc;b.onclick=()=>{insertAtCursor(document.getElementById('prevIn'),code);};cp.appendChild(b);});
+  const cl=document.getElementById('colorPal');cl.innerHTML='';
+  MZCOL.forEach((hex,i)=>{const b=document.createElement('button');b.style.background=hex;b.title='\\C['+i+']';
+    b.onclick=()=>insertAtCursor(document.getElementById('prevIn'),'\\C['+i+']');cl.appendChild(b);});
+}
+function renderInline(line){
+  // 制御文字を解釈してHTML化（色/プレースホルダ）
+  let html='';let color='#fff';let i=0;const s=line;
+  function span(t){return '<span style="color:'+color+'">'+esc(t)+'</span>';}
+  while(i<s.length){
+    if(s[i]==='\\'){
+      const rest=s.slice(i);let m;
+      if((m=rest.match(/^\\C\[(\d+)\]/))){color=MZCOL[+m[1]]||'#fff';i+=m[0].length;continue;}
+      if((m=rest.match(/^\\([VNP])\[(\d+)\]/))){html+='<span style="color:'+color+';opacity:.8">['+m[1]+m[2]+']</span>';i+=m[0].length;continue;}
+      if((m=rest.match(/^\\G/))){html+=span('G');i+=2;continue;}
+      if((m=rest.match(/^\\\\/))){html+=span('￥');i+=2;continue;}
+      if((m=rest.match(/^\\[.|!^><]/))){i+=2;continue;}// 表示なし
+      html+=span('\\');i++;continue;
+    }
+    // 通常文字（次の制御文字まで）
+    let j=s.indexOf('\\',i);if(j<0)j=s.length;html+=span(s.slice(i,j));i=j;
+  }
+  return html;
+}
+function runPreview(){
+  const raw=document.getElementById('prevIn').value;DB.prevDraft=raw;save();
+  const face=document.getElementById('pvFace').value==='on';
+  const size=+document.getElementById('pvSize').value;
+  const contentW=face?616:780;
+  const zone=document.getElementById('prevZone');
+  if(!raw.trim()){zone.innerHTML='<div class="empty">テキストを入れて「プレビュー更新」</div>';document.getElementById('prevWarns').innerHTML='';return;}
+  const blocks=raw.split(/\n\s*\n/);
+  // 計測用キャンバス
+  const cv=document.createElement('canvas');const ctx=cv.getContext('2d');
+  ctx.font=size+'px "Noto Sans JP",sans-serif';
+  let html='';const warns=[];
+  blocks.forEach((blk,bi)=>{
+    const lines=blk.split('\n');
+    let lineHtml='';
+    lines.forEach((ln,li)=>{
+      const plain=stripCodes(ln);const w=ctx.measureText(plain).width;
+      const over=w>contentW;const extra=li>=4;
+      if(over)warns.push('ボックス'+(bi+1)+' '+(li+1)+'行目：枠からはみ出します');
+      if(extra&&li===4)warns.push('ボックス'+(bi+1)+'：5行目以降は別ボックスに分けてください');
+      lineHtml+='<div class="mz-line'+(over?' over':'')+(extra?' extra':'')+'" style="font-size:'+size+'px">'+renderInline(ln)+'</div>';
+    });
+    html+='<div class="msgblock"><div class="bl">BOX '+(bi+1)+'</div>'+
+      '<div class="mz-screen"><div class="mz-win">'+
+      (face?'<div class="mz-face">FACE<br>144×144</div>':'')+
+      '<div class="mz-text"><div class="mz-lines" style="width:'+contentW+'px">'+
+      '<div class="mz-guide"></div>'+lineHtml+'</div></div></div></div></div>';
+  });
+  zone.innerHTML=html;
+  const wd=document.getElementById('prevWarns');
+  if(!warns.length)wd.innerHTML='<div class="okmsg">枠内に収まっています</div>';
+  else wd.innerHTML='<div class="warns">'+[...new Set(warns)].map(w=>'<div class="warn">'+esc(w)+'</div>').join('')+'</div>';
+}
+
+/* =================================================================
+   03 フラグ・変数
+================================================================= */
+function refreshFilters(){
+  const swCats=[...new Set(DB.switches.map(s=>s.cat).filter(Boolean))];
+  const vrCats=[...new Set(DB.variables.map(v=>v.cat).filter(Boolean))];
+  const swf=document.getElementById('swFilter'),vrf=document.getElementById('vrFilter');
+  const cur1=swf.value,cur2=vrf.value;
+  swf.innerHTML='<option value="">全カテゴリ</option>'+swCats.map(c=>'<option>'+esc(c)+'</option>').join('');
+  vrf.innerHTML='<option value="">全カテゴリ</option>'+vrCats.map(c=>'<option>'+esc(c)+'</option>').join('');
+  swf.value=cur1;vrf.value=cur2;
+}
+function addSwitch(){DB.switches.push({key:uid(),id:nextId(DB.switches),name:'',cat:'',note:''});save();renderSwitches();}
+function addVar(){DB.variables.push({key:uid(),id:nextId(DB.variables),name:'',cat:'',init:'0',note:''});save();renderVars();}
+function addScene(){DB.scenes.push({key:uid(),name:'',cond:'',flags:''});save();renderScenes();}
+function nextId(arr){let mx=0;arr.forEach(x=>{const n=parseInt(x.id,10);if(n>mx)mx=n;});return mx+1;}
+function dupIds(arr){const seen={},dup={};arr.forEach(x=>{const id=String(x.id).trim();if(!id)return;
+  if(seen[id])dup[id]=true;seen[id]=true;});return dup;}
+function fld(obj,prop,type,cls,ph){
+  const v=esc(obj[prop]==null?'':obj[prop]);
+  return '<input type="'+(type||'text')+'" class="'+(cls||'')+'" value="'+v+'" placeholder="'+(ph||'')+'" '+
+    'oninput="upd(\''+obj.key+'\',\''+prop+'\',this.value)">';
+}
+let _maps=null;
+function locate(key){
+  if(!_maps)_maps={};
+  for(const arr of [DB.switches,DB.variables,DB.scenes,DB.dict]){const o=arr.find(x=>x.key===key);if(o)return o;}
+  return null;
+}
+function upd(key,prop,val){const o=locate(key);if(o){o[prop]=val;save();
+  if(prop==='cat'){refreshFilters();}
+  if(['canonical','faceName','faceIndex','color','type'].includes(prop)){renderCharChips();}
+}}
+function setField(key,prop,val){const o=locate(key);if(o){o[prop]=val;save();}}
+function reRender(which){if(which==='switches')renderSwitches();else if(which==='variables')renderVars();}
+function delRow(arrName,key){DB[arrName]=DB[arrName].filter(x=>x.key!==key);save();
+  renderSwitches();renderVars();renderScenes();renderDict();renderCharChips();refreshFilters();}
+function renderSwitches(){
+  const q=(document.getElementById('swSearch').value||'').toLowerCase();
+  const f=document.getElementById('swFilter').value;
+  const dup=dupIds(DB.switches);const tb=document.getElementById('swBody');
+  const rows=DB.switches.filter(s=>(!f||s.cat===f)&&(!q||((s.name||'')+(s.note||'')).toLowerCase().includes(q)));
+  if(!rows.length){tb.innerHTML='<tr><td colspan="5" class="empty" style="border:none">行を追加してください</td></tr>';return;}
+  tb.innerHTML=rows.map(s=>'<tr class="'+(dup[String(s.id).trim()]?'dup':'')+'">'+
+    '<td class="id"><input type="number" value="'+esc(s.id==null?'':s.id)+'" oninput="setField(\''+s.key+'\',\'id\',this.value)" onchange="reRender(\'switches\')"></td><td>'+fld(s,'name','text','',' ')+'</td>'+
+    '<td>'+fld(s,'cat','text','','分岐/CG等')+'</td><td>'+fld(s,'note','text')+'</td>'+
+    '<td><button class="del" onclick="delRow(\'switches\',\''+s.key+'\')">×</button></td></tr>').join('');
+}
+function renderVars(){
+  const q=(document.getElementById('vrSearch').value||'').toLowerCase();
+  const f=document.getElementById('vrFilter').value;
+  const dup=dupIds(DB.variables);const tb=document.getElementById('vrBody');
+  const rows=DB.variables.filter(v=>(!f||v.cat===f)&&(!q||((v.name||'')+(v.note||'')).toLowerCase().includes(q)));
+  if(!rows.length){tb.innerHTML='<tr><td colspan="6" class="empty" style="border:none">行を追加してください</td></tr>';return;}
+  tb.innerHTML=rows.map(v=>'<tr class="'+(dup[String(v.id).trim()]?'dup':'')+'">'+
+    '<td class="id"><input type="number" value="'+esc(v.id==null?'':v.id)+'" oninput="setField(\''+v.key+'\',\'id\',this.value)" onchange="reRender(\'variables\')"></td><td>'+fld(v,'name','text')+'</td>'+
+    '<td>'+fld(v,'cat','text','','好感度等')+'</td><td class="idx">'+fld(v,'init','number')+'</td>'+
+    '<td>'+fld(v,'note','text')+'</td>'+
+    '<td><button class="del" onclick="delRow(\'variables\',\''+v.key+'\')">×</button></td></tr>').join('');
+}
+function renderScenes(){
+  const tb=document.getElementById('scBody');
+  if(!DB.scenes.length){tb.innerHTML='<tr><td colspan="4" class="empty" style="border:none">行を追加してください</td></tr>';return;}
+  tb.innerHTML=DB.scenes.map(s=>'<tr><td>'+fld(s,'name','text')+'</td><td>'+fld(s,'cond','text','','例: 好感度≥50 かつ S12 ON')+
+    '</td><td>'+fld(s,'flags','text','','例: SW12 / VAR3')+'</td>'+
+    '<td><button class="del" onclick="delRow(\'scenes\',\''+s.key+'\')">×</button></td></tr>').join('');
+}
+function downloadSystemNames(){
+  function arr(list){const mx=Math.max(0,...list.map(x=>parseInt(x.id,10)||0));const a=new Array(mx+1).fill('');
+    list.forEach(x=>{const id=parseInt(x.id,10);if(id>0)a[id]=x.name||'';});return a;}
+  const obj={switches:arr(DB.switches),variables:arr(DB.variables)};
+  downloadBlob(JSON.stringify(obj,null,2),'system_names.json','application/json');
+}
+function downloadFlagCSV(){
+  let csv='種別,ID,名前,カテゴリ,初期値,メモ\n';
+  DB.switches.forEach(s=>csv+=['スイッチ',s.id,q(s.name),q(s.cat),'',q(s.note)].join(',')+'\n');
+  DB.variables.forEach(v=>csv+=['変数',v.id,q(v.name),q(v.cat),v.init,q(v.note)].join(',')+'\n');
+  function q(s){s=String(s==null?'':s);return /[",\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}
+  downloadBlob('\ufeff'+csv,'flags_variables.csv','text/csv');
+}
+
+/* =================================================================
+   04 辞書 & 表記チェック
+================================================================= */
+function addDict(){DB.dict.push({key:uid(),type:'キャラ',canonical:'',reading:'',variants:'',faceName:'',faceIndex:'0',color:'0',note:''});save();renderDict();renderCharChips();}
+function renderDict(){
+  const q=(document.getElementById('dcSearch').value||'').toLowerCase();
+  const tb=document.getElementById('dcBody');
+  const rows=DB.dict.filter(d=>!q||((d.canonical||'')+(d.variants||'')+(d.reading||'')).toLowerCase().includes(q));
+  if(!rows.length){tb.innerHTML='<tr><td colspan="8" class="empty" style="border:none">行を追加してください</td></tr>';return;}
+  tb.innerHTML=rows.map(d=>{
+    const col=MZCOL[+d.color||0]||'#fff';
+    return '<tr>'+
+    '<td><select onchange="upd(\''+d.key+'\',\'type\',this.value)">'+
+      ['キャラ','地名','用語'].map(t=>'<option'+(d.type===t?' selected':'')+'>'+t+'</option>').join('')+'</select></td>'+
+    '<td>'+fld(d,'canonical','text')+'</td><td>'+fld(d,'reading','text')+'</td>'+
+    '<td>'+fld(d,'variants','text','','旧名, 誤記, 愛称')+'</td>'+
+    '<td>'+fld(d,'faceName','text','','Actor1')+'</td>'+
+    '<td class="idx">'+fld(d,'faceIndex','number')+'</td>'+
+    '<td style="white-space:nowrap"><span class="sw" style="display:inline-block;width:12px;height:12px;border-radius:2px;vertical-align:middle;margin-right:5px;background:'+col+'"></span>'+
+      '<input type="number" style="width:48px" value="'+esc(d.color||'0')+'" oninput="upd(\''+d.key+'\',\'color\',this.value)"></td>'+
+    '<td><button class="del" onclick="delRow(\'dict\',\''+d.key+'\')">×</button></td></tr>';
+  }).join('');
+}
+function variantMap(){
+  const list=[];
+  DB.dict.forEach(d=>{if(!d.canonical)return;
+    (d.variants||'').split(/[,，、]/).map(s=>s.trim()).filter(Boolean).forEach(v=>{
+      if(v!==d.canonical)list.push({variant:v,canonical:d.canonical,type:d.type});});});
+  // 長いものから（部分一致の取りこぼし防止）
+  return list.sort((a,b)=>b.variant.length-a.variant.length);
+}
+function runCheck(){
+  const text=document.getElementById('termIn').value;DB.termDraft=text;save();
+  const vm=variantMap();const res=document.getElementById('termRes');const stat=document.getElementById('termStats');
+  if(!text.trim()){res.innerHTML='<div class="empty">原稿を貼り付けてください</div>';stat.innerHTML='';return;}
+  if(!vm.length){res.innerHTML='<div class="empty">辞書に「表記ゆれ」を登録すると検出できます</div>';stat.innerHTML='';return;}
+  const lines=text.split('\n');const found=[];const counts={};
+  lines.forEach((line,li)=>{
+    vm.forEach(v=>{
+      let idx=0;const lo=line;
+      while((idx=lo.indexOf(v.variant,idx))!==-1){
+        found.push({line:li+1,col:idx,variant:v.variant,canonical:v.canonical,type:v.type,context:line});
+        counts[v.variant]=(counts[v.variant]||0)+1;idx+=v.variant.length;
+      }
+    });
+  });
+  if(!found.length){res.innerHTML='<div class="okmsg">表記ゆれは見つかりませんでした</div>';stat.innerHTML='';return;}
+  // 統計
+  stat.innerHTML='<div class="stat-row"><div class="s"><b>'+found.length+'</b>件の表記ゆれ</div>'+
+    '<div class="s"><b>'+Object.keys(counts).length+'</b>種類</div></div>';
+  // 結果（行ごと・重複表示は文脈で）
+  res.innerHTML=found.map(f=>{
+    const ctx=esc(f.context).replace(esc(f.variant),'<mark>'+esc(f.variant)+'</mark>');
+    return '<div class="cres"><div class="top"><span class="ln">L'+f.line+'</span>'+
+      '<span class="bad">'+esc(f.variant)+'</span><span class="arr">→</span>'+
+      '<span class="good">'+esc(f.canonical)+'</span><span class="ln">'+esc(f.type)+'</span></div>'+
+      '<div class="ctx">'+ctx+'</div></div>';
+  }).join('');
+}
+function downloadCorrected(){
+  const text=document.getElementById('termIn').value;if(!text.trim()){toast('原稿が空です');return;}
+  const vm=variantMap();let out=text;
+  vm.forEach(v=>{out=out.split(v.variant).join(v.canonical);});
+  downloadBlob(out,'corrected.txt','text/plain');
+}
+
+/* =================================================================
+   プロジェクト保存／読込
+================================================================= */
+function exportProject(){
+  DB.scriptDraft=document.getElementById('scriptIn').value;
+  DB.prevDraft=document.getElementById('prevIn').value;
+  DB.termDraft=document.getElementById('termIn').value;
+  downloadBlob(JSON.stringify(DB,null,2),'scenario_project.json','application/json');
+}
+function importProject(file){if(!file)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);DB=Object.assign({dict:[],switches:[],variables:[],scenes:[],scriptDraft:'',prevDraft:'',termDraft:''},d);
+    save();initUI();toast('プロジェクトを読み込みました');}catch(e){toast('読み込み失敗：JSONを確認してください');}};
+  r.readAsText(file);}
+
+/* =================================================================
+   初期化
+================================================================= */
+function initUI(){
+  document.getElementById('scriptIn').value=DB.scriptDraft||'';
+  document.getElementById('prevIn').value=DB.prevDraft||'';
+  document.getElementById('termIn').value=DB.termDraft||'';
+  renderSwitches();renderVars();renderScenes();renderDict();renderCharChips();refreshFilters();
+  liveHighlight();
+}
+load();buildPalettes();initUI();
+// ライブハイライト配線（長い行を入力中もマーカー表示）
+(function(){
+  const ta=document.getElementById('scriptIn');
+  ta.addEventListener('input',()=>{DB.scriptDraft=ta.value;save();debouncedHL();});
+  ta.addEventListener('scroll',syncHL);
+  ['cvFace','cvPos','cvBg'].forEach(id=>document.getElementById(id).addEventListener('change',liveHighlight));
+  window.addEventListener('resize',syncHL);
+})();
+if((DB.scriptDraft||'').trim())runConvert();
+if((DB.prevDraft||'').trim())runPreview();
+</script>
+</body>
+</html>
